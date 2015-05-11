@@ -444,18 +444,26 @@ function renderDefinition(minimal, dfn, swaggerJSONdefinitions){
             if(!minimal){
                 html += "       <td style='width:30%;" + FONT_STYLE + "'>";
                 
-
                 if(typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["$ref"] !== "undefined"){
                     var items = swaggerJSONdefinitions[dfn].properties[dfnProps]["$ref"].split('/');
                     var dfn = items[items.length-1];
                     html += "See <b>" + dfn + "</b> in the <b>Definitions</b> section.";
                 }
                 else if(typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["items"] !== "undefined"){
-                    var items = swaggerJSONdefinitions[dfn].properties[dfnProps]["items"].split('/');
-                    var dfn = items[items.length-1];
-                    html += "See <b>" + dfn + "</b> in the <b>Definitions</b> section.";
+                    if (typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["items"] === "string") {
+                        var items = swaggerJSONdefinitions[dfn].properties[dfnProps]["items"].split('/');
+                        var dfn = items[items.length-1];
+                        html += "See <b>" + dfn + "</b> in the <b>Definitions</b> section.";
+                    }
+                    else if (typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["items"] === "object") {
+                        if (typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["items"]["$ref"] !== "undefined"){
+                            var items = swaggerJSONdefinitions[dfn].properties[dfnProps]["items"]["$ref"].split('/');
+                            var dfn = items[items.length-1];
+                            html += "See <b>" + dfn + "</b> in the <b>Definitions</b> section.";
+                        }
+                    }
                 }
-                else{;
+                else{
                     html += ((typeof swaggerJSONdefinitions[dfn].properties[dfnProps].description !== "undefined") ? swaggerJSONdefinitions[dfn].properties[dfnProps].description : "");
                 }
                 
