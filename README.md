@@ -11,3 +11,9 @@ These are the current plans:
 * further testing 
 * combining several JSON files into 1 output 
 * additional options for mark up
+
+## Dependencies
+* phantomjs-pdf
+
+## Contribution
+If you've got value out of this and have ideas, please send pull requests.
