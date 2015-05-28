@@ -4,27 +4,24 @@
 var
     fs = require('fs'),
     pdf = require('phantomjs-pdf');
+
    
 // consts
 var    
     FONT_STYLE='font-family: "Helvetica Neue",Trebuchet MS, sans-serif;font-size: 15px;color: #444';
     ALTERNATE_ROW_STYLE = ";background-color: #EAEAEA";
-    //font-family: "Helvetica Neue",Trebuchet MS, sans-serif;
-   // font-size: 15px;
-   // color: #444;
-   // margin-right: 24px;
 
 var jsonFile = process.argv.splice(2)[0];
-
 console.log(jsonFile);
-
 var swaggerJSON = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
-
 var html = convertToHTML(swaggerJSON);
+    
 
+var sub1Counter=1; //counters for sub heading items
+var sub2Counter=1;
+var sub3Counter=1;
 // output file
 var fileName = "test.html";
-
 // remove output file if exists
 if(fs.existsSync(fileName))
     fs.unlinkSync(fileName);
@@ -35,9 +32,8 @@ fs.writeFile(fileName, html, function(err){
         console.log("FAILED:" + err);
     else{
         console.log("done");
-        
-
-        pdf.convert({"html" : "./test.html"}, function(result) {
+        //normalize.css helps with empty pages on the end of the pdf and renders the html more consistently # http://necolas.github.io/normalize.css/
+        pdf.convert({"html" : "./test.html", "css": "./normalize.css"}, function(result) {
 
             /* Using a buffer and callback */
             result.toBuffer(function(returnedBuffer) {
@@ -57,7 +53,6 @@ fs.writeFile(fileName, html, function(err){
                 else
                     console.log("really done ...");
 
-
             });
 
             
@@ -69,14 +64,10 @@ fs.writeFile(fileName, html, function(err){
 
 
 
-
-
-
-
 function convertToHTML(swaggerJSON){
 
     var html = '';
-
+    var genDate = new Date();
     html += "<html>"
     html += "<style>";
     html += "body {" +FONT_STYLE+"};";
@@ -155,49 +146,60 @@ function convertToHTML(swaggerJSON){
     html += "padding-right:4px;";
     html += "padding-left:4px;";
     html += "}";
-
-
-
-    
-
+    html += ".page {";
+    html += "page-break-after:always;";
+    html += "position: fixed;";
+    html += "}";
+    html += ".centerAlign {";
+    html += "text-align:center";
+    html += "}";
+    html += ".coverHeadings {";
+    html += "color: #0f6ab4";
+    html += "}";
+    html += "@media print{.footer {position:relative;top:-50px;height:10px;text-align:center;color: #0f6ab4}}";
+    html += ".moddedHR {";
+    html += "border: none;";
+    html += "height: 2px;";
+    html += "color: #0f6ab4;";
+    html += "background-color: #0f6ab4;";
+    html += "}";
     html += "</style>";
-
-
     html += "<body>"
-
+    html += '<div class="coverHeadings"><h1>Introduction</h1></div>';
+    
     html += headerSummary(swaggerJSON);
+ 
+    html += "<div style='page-break-after:always'></div>";
+    html += "<div style='page-break-after:always'><div class='footer'>Generated on: " +genDate +"</div>";
 
-
-
-
-    // desc
-    //html += '<p>' + swaggerJSON.info.description + '</p>';
+    html += tableOfContents(swaggerJSON);
+    html += "<div style='page-break-after:always'></div>";
+    html +="</div>"; //END of second page breaker;
+    html += "<div style='page-break-after:always'></div>";
 
     // definitions
-    html += '<h2>Definitions</h2>';
+    html += '<h2>1. Definitions</h2>';
+    
+    sub1Counter=1;
     for(var dfn in swaggerJSON.definitions) {
         // eg: Product (uber)
         html += '<div class="div-container-margin">'; // definitions start
-
-        html += "<h3>" + dfn + "</h3>";
+        html += "<h3>1." +sub1Counter + ". " + dfn + "</h3>";
         html += "<hr />";
-
-
         html += renderDefinition(false, dfn, swaggerJSON.definitions);
-
         html += "<br />";
-
-
         html += '</div>'; // definitions start
+        sub1Counter++;
     }
 
 
     html += renderSecurityDefinitions(swaggerJSON.securityDefinitions);
-
+    html += "<div style='page-break-after:always'></div>";
 
     // paths
-    html += '<h2>Paths</h2>';
+    html += '<h2>3. Paths</h2>';
     var pathCounter=0;
+    sub3Counter=1;
     for(var path in swaggerJSON.paths){
        // if(loopBreaker===2){break;};
        if(pathCounter===0)
@@ -209,58 +211,27 @@ function convertToHTML(swaggerJSON){
              html += '<div>';
        }
 
-
- //<pre class="post"><code class="huge"><span>post</span>: /api/BudgetAPI</code></pre>
-        
-      /*  switch(action)
-        {
-            case "get":
-                html+='<pre class="get"><code class="huge"><span>get</span>:'+path+'</code></pre>';
-                break; 
-            case "post":
-                html+='<pre class="post"><code class="huge"><span>post</span>:'+path+'</code></pre>';
-                break;
-            case "put":
-                html+='<pre class="put"><code class="huge"><span>put</span>:'+path+'</code></pre>';
-                break;
-            case "delete":
-                html+='<pre class="delete"><code class="huge"><span>delete</span>:'+path+'</code></pre>';
-                break;
-        }*/
-
-        // path name
-     
-       // console.log('path: ' + path);
-
         // verbs for path
         for(var action in swaggerJSON.paths[path]){
-            
-            //html += '<h3> path:' + path + '</h3>';
-            //html += '<hr />';
             
             switch(action)
             {
                 case "get":
-                    html+='<pre class="get"><code class="huge"><span>get</span>:'+path+'</code></pre>';
+                    html+='<h3>3.' + sub3Counter  +'.</h3><pre class="get"><code class="huge"><span>get</span>:'+path+'</code></pre>';
                     break; 
                 case "post":
-                    html+='<pre class="post"><code class="huge"><span>post</span>:'+path+'</code></pre>';
+                    html+='<h3>3.' + sub3Counter  +'.</h3><pre class="post"><code class="huge"><span>post</span>:'+path+'</code></pre>';
                     break;
                 case "put":
-                    html+='<pre class="put"><code class="huge"><span>put</span>:'+path+'</code></pre>';
+                    html+='<h3>3.' + sub3Counter  +'.</h3><pre class="put"><code class="huge"><span>put</span>:'+path+'</code></pre>';
                     break;
                 case "delete":
-                    html+='<pre class="delete"><code class="huge"><span>delete</span>:'+path+'</code></pre>';
+                    html+='<h3>3.' + sub3Counter  +'.</h3><pre class="delete"><code class="huge"><span>delete</span>:'+path+'</code></pre>';
                     break;
             }
 
-
             html += '<div>'; // path start
-
             html += "<table class='table-margin'>";
-          //  html += "    <tr>";
-          //  html += "           <td colspan='2' style=';vertical-align:top;text-align:center'><h4>HTTP " + action + "</h4></td>";
-          //  html += "    </tr>";
 
             // summary
             html += "    <tr>";
@@ -298,10 +269,7 @@ function convertToHTML(swaggerJSON){
             html += "           <td class='td-alignment-small'><b>Parameters</b></td>";
             html += "           <td class='td-alignment-std' style='padding-left:0px!important;margin-left:0px!important'>";
 
-//html += '</table>'; //PATH TABLE ENDER
-
             if(typeof swaggerJSON.paths[path][action].parameters !== "undefined") {
-
                 html += "<table class='table-margin'>";
                 html += "   <thead>";    
                 html += "     <tr>";
@@ -327,7 +295,6 @@ function convertToHTML(swaggerJSON){
                         rowStyle = ALTERNATE_ROW_STYLE;
                     }
                     html += "   <tr style='" + rowStyle + "'>";
-
                     var param = swaggerJSON.paths[path][action].parameters[paramIndex];
 
                     // name
@@ -356,7 +323,6 @@ function convertToHTML(swaggerJSON){
                         html += "       <td class='td-alignment-small-no-width'>" + ((typeof param.type !== "undefined") ? param.type : "") + "</td>";
                     }
 
-
                     // format
                     html += "       <td class='td-alignment-small-no-width'>" + ((typeof param.format !== "undefined") ? param.format : "") + "</td>";
 
@@ -375,22 +341,12 @@ function convertToHTML(swaggerJSON){
                     
                 }
                 html += "   </tbody>";    
-                
                 html += "   </table>";
 
            }
            else{
                html += "<p>" + "no parameters" + "</p>";
             }
-
-
-
-
-
-
-
-          
-
 
             // tags
             if(typeof swaggerJSON.paths[path][action].tags !== "undefined") {
@@ -405,32 +361,34 @@ function convertToHTML(swaggerJSON){
                 // no tags
             }
 
-
-
+            
             // action security 
             if(typeof swaggerJSON.paths[path][action].security !== "undefined") {
 
-                html += "    <tr>";
-                html += "           <td class='td-alignment-small'><b>Security</b></td>";
+                    html += "<tr>";
+                    html += "<td class='td-alignment-small'><b>Security</b></td>";
+                    html += "<td class='td-alignment-std' style='padding-left:0px!important;margin-left:0px!important'>";
 
-                for (var securityIndex = 0; securityIndex < swaggerJSON.paths[path][action].security.length; securityIndex++) {
-                    
-                    var security = swaggerJSON.paths[path][action].security[securityIndex];
-                    for(var securityItem in security){
-                        html += "           <td class='td-alignment-small'><b>" + securityItem + "</b> (" + swaggerJSON.paths[path][action].security[securityIndex][securityItem].join(', ') + ")" + "</td>";
-                    }
-                };
+                    // response schema start
+                    html += "<table class='table-margin' style='width:42%'>";
 
-                
-                html += "    </tr>";
+                    html += "   <tr>";
+                      for (var securityIndex = 0; securityIndex < swaggerJSON.paths[path][action].security.length; securityIndex++) {
+                            
+                            var security = swaggerJSON.paths[path][action].security[securityIndex];
+                            var iSec=0;
+                            for(var securityItem in security){
+                              html += "<td class='td-alignment-small'><b>" + securityItem + "</b> (" + swaggerJSON.paths[path][action].security[securityIndex][securityItem].join(', ') + ")" + "</td>";
 
+                            };
+                        };
+                    html += "       </td>";
+                    html += "   </tr>";
+                    html += "   </table>";
             }
             else{
                 // no security
             }
-
-       
-
          
             // action responses
             html += "      <tr>";
@@ -446,7 +404,6 @@ function convertToHTML(swaggerJSON){
             html += "   </tr>";
             for(var response in swaggerJSON.paths[path][action].responses) {
                 // eg 200
-                
                 
                 // response schema start
                 html += "   <tr>";
@@ -495,27 +452,88 @@ function convertToHTML(swaggerJSON){
 
             }
             html += "</table>";  //responses 
-         html += "           </td>";     
+            html += "           </td>";     
             html += "    </tr>";
-
-
-         
-
-
-
             html+='</table>'; //TABLE FOR PATH END
         }
         pathCounter++;
+        sub3Counter++;
         html += '</div>';
     }
 
-
-
+    html += "</div></div>";
     html += "</body></html>";
-
     return html;
 }
 
+function tableOfContents(swaggerJSON)
+{
+
+    var html='';
+    html += '<div class="coverHeadings"><h1>Table of contents</h1></div>';
+    html += '<h2>1. Definitions</h2>';
+    sub1Counter=1;
+    for(var dfn in swaggerJSON.definitions) {
+        // eg: Product (uber)
+        html += '<div class="div-container-margin">'; // definitions start
+        html += "<span><b>1." + sub1Counter +".</b> " + dfn + "</span>";
+        html += "<br><br>";
+        html += '</div>'; // definitions start
+        sub1Counter++;
+    }
+    html += renderSecurityDefinitionsTableContents(swaggerJSON.securityDefinitions);
+    html += '<h2>3. Paths</h2>';
+    html += pathsTableContents(swaggerJSON);
+    return html;
+}
+function renderSecurityDefinitionsTableContents(securityDefinitions){
+    var html = "";  
+    sub2Counter=1;  
+    // security
+    html += '<h2>2. Security</h2>';
+    html += '<div class="div-container-margin">'; // security start
+    for(var sec in securityDefinitions) {
+            html += "<span><b>2." + sub2Counter +".</b> " + sec + 
+                ( typeof(securityDefinitions[sec].type) !== "undefined" ? " (" + securityDefinitions[sec].type + ")" : "" ) + "</span>";
+           
+            html += "<br><br>";
+            sub2Counter++;
+         
+    }
+    html += '</div>'; // security end
+    return html;
+}
+function pathsTableContents(swaggerJSON)
+{
+    var html ='';
+    sub3Counter=1;
+    for(var path in swaggerJSON.paths){
+     
+     html += '<div class="div-container-margin">';
+     for(var action in swaggerJSON.paths[path]){
+            
+            switch(action)
+            {
+                case "get":
+                    html+='<span><b>3.' + sub3Counter +'.</b> ' +'get</span>:'+path+'';
+                    break; 
+                case "post":
+                    html+='<span><b>3.' + sub3Counter +'.</b> ' +'post</span>:'+path+'';
+                    break;
+                case "put":
+                    html+='<span><b>3.' + sub3Counter +'.</b> ' +'put</span>:'+path+'';
+                    break;
+                case "delete":
+                    html+='<span><b>3.' + sub3Counter +'.</b> ' +'delete</span>:'+path+'';
+                    break;
+            }
+            html += "<br><br>";
+            sub3Counter++;
+        }
+         html +="</div>";
+    }
+    return html;
+}
 function renderSchemaItems(schemaItems, swaggerDefinitions){
     var html = "";
 
@@ -536,16 +554,12 @@ function renderSchemaItems(schemaItems, swaggerDefinitions){
 
     }
 
-
-
-
     return html;
 }
 
 function renderDefinition(minimal, dfn, swaggerJSONdefinitions){
 
     var html = "";
-
     html += "<table class='table-margin'>";
     html += "   <thead>";
     html += "    <tr>";
@@ -621,7 +635,7 @@ function headerSummary(swaggerJSON){
 
     var html = "";
 
-    html+="<h1>"+ swaggerJSON.info.title +"</h1>";
+    html+="<div><h1>"+ swaggerJSON.info.title +"</h1></div>";
      if(swaggerJSON.info.description != null) {
         html+= "<h3>"+ swaggerJSON.info.description.replace('\n\n', '<br />') +"</h3>";
     }
@@ -660,103 +674,26 @@ function headerSummary(swaggerJSON){
     }
     html += "</div>"
 
-  /*
-    //------------------------OLD BELOW
-    html += "<table style='width:100%;' border='0'>"
-    html += "   <tr>";
-    html += "       <td colspan='3' style='text-align:center;'><span style='font-weight: bold;font-size: 30pt;'>"+ swaggerJSON.info.title + "</span></td>"; // TODO markdown parse
-    html += "   </tr>";
-    if(swaggerJSON.info.description != null) {
-        html += "   <tr>";
-        html += "       <td colspan='3' style='text-align:center;" + FONT_STYLE + "'>"  "</td>";  // TODO markdown parse
-        html += "   </tr>";
-    }
-    if(swaggerJSON.info.version != null) {
-        html += "   <tr>";
-        html += "       <td style='width:35%;'>&nbsp;</td>";
-        html += "       <td style='width:15%;text-align:left;" + FONT_STYLE + "'>Version:</td>";
-        html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.info.version + "</td>";
-        html += "   </tr>";
-    }
-    if(swaggerJSON.info.termsOfService != null) {
-        html += "   <tr>";
-        html += "       <td style='width:35%;'>&nbsp;</td>";
-        html += "       <td style='width:15%;text-align:left;" + FONT_STYLE + "'>Terms of service:</td>";
-        html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.info.termsOfService + "</td>";
-        html += "   </tr>";
-    }
-    if(swaggerJSON.info.contact != null){
-        for(var contactMethod in swaggerJSON.info.contact){
-            html += "   <tr>";
-            html += "       <td style='width:35%;'>&nbsp;</td>";
-            html += "       <td style='width:15%;text-align:left;" + FONT_STYLE + "'>Contact " + contactMethod + ":</td>";
-            html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.info.contact[contactMethod] + "</td>";
-            html += "   </tr>";
-        }
-    }
-    if(swaggerJSON.info.license != null){
-        for(var licenseMethod in swaggerJSON.info.license){
-            html += "   <tr>";
-            html += "       <td style='width:35%;'>&nbsp;</td>";
-            html += "       <td style='width:15%;text-align:left;" + FONT_STYLE + "'>License " + licenseMethod + ":</td>";
-            html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.info.license[licenseMethod] + "</td>";
-            html += "   </tr>";
-        }
-    }
-    if(swaggerJSON.host != null){
-        html += "   <tr>";
-        html += "       <td style='width:35%;'>&nbsp;</td>";
-        html += "       <td style='width:15%;text-align:left;" + FONT_STYLE + "'>Host:</td>";
-        html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.host + "</td>";
-        html += "   </tr>";
-    }
-    if(swaggerJSON.basePath != null){
-        html += "   <tr>";
-        html += "       <td style='width:35%;'>&nbsp;</td>";
-        html += "       <td style='width:15%;text-align:left;" + FONT_STYLE + "'>Base Path:</td>";
-        html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.basePath + "</td>";
-        html += "   </tr>";
-    }
-    if(swaggerJSON.produces != null){
-        html += "   <tr>";
-        html += "       <td style='width:35%;'>&nbsp;</td>";
-        html += "       <td style='width:15%;text-align:left;" + FONT_STYLE + "'>Produces:</td>";
-        html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.produces.join(', ') + "</td>";
-        html += "   </tr>";
-    }
-    if(swaggerJSON.schemes != null && swaggerJSON.schemes.length !== 0){
-        html += "   <tr>";
-        html += "       <td style='width:35%;'>&nbsp;</td>";
-        html += "       <td style='width:15%;text-align:left;" + FONT_STYLE + "'>Scheme:</td>";
-        html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.schemes.join(', ') + "</td>";
-        html += "   </tr>";
-        /*for(var schemeIndex = 0; schemeIndex < swaggerJSON.schemes.length;schemeIndex++) {
-            html += "   <tr>";
-            html += "       <td style='width:40%;'>&nbsp;</td>";
-            html += "       <td style='width:10%;text-align:left;" + FONT_STYLE + "'>Scheme:</td>";
-            html += "       <td style='width:50%;text-align:left;" + FONT_STYLE + "'>" + swaggerJSON.schemes[schemeIndex] + "</td>";
-            html += "   </tr>";
-        }//OLD star slash
-    }
-    html += '</table>';*/
-
-
-
     return html;
 }
 
+
+
+
 function renderSecurityDefinitions(securityDefinitions){
-    var html = "";    
+    var html = "";   
+    html += "<div style='page-break-after:always'></div>"; 
     // security
-    html += '<h2>Security</h2>';
+    html += '<h2>2. Security</h2>';
     html += '<div class="div-container-margin">'; // security start
+    sub2Counter=1;
     for(var sec in securityDefinitions) {
             html += "<table class='table-margin'>";
 
             html += "<tr>";            
 
-            html += "<td colspan='2'><b>" + sec + 
-                ( typeof(securityDefinitions[sec].type) !== "undefined" ? " (" + securityDefinitions[sec].type + ")" : "" ) + "</b></td>";
+            html += "<td colspan='2'><h3>2." + sub2Counter +". "  + sec + "</h3>"+
+                ( typeof(securityDefinitions[sec].type) !== "undefined" ? " (" + securityDefinitions[sec].type + ")" : "" ) + "</td>";
 
             html += "</tr>";            
             if(typeof(securityDefinitions[sec].flow) !== "undefined"){
@@ -797,7 +734,8 @@ function renderSecurityDefinitions(securityDefinitions){
                 html += "</tr>";       
             }
 
-            html += "</table>";            
+            html += "</table>";   
+            sub2Counter++;         
     }
     html += '</div>'; // security end
 
