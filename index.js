@@ -11,56 +11,94 @@ var
     FONT_STYLE='font-family: "Helvetica Neue",Trebuchet MS, sans-serif;font-size: 15px;color: #444';
     ALTERNATE_ROW_STYLE = ";background-color: #EAEAEA";
 
-var jsonFile = process.argv.splice(2)[0];
-console.log(jsonFile);
-var swaggerJSON = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
-var html = convertToHTML(swaggerJSON);
+var jsonFileList
+var jsonFileListLen;
+var swaggerJSON;
+var html='';
+var jsonFile;
+var splittedJSONFiles;
+var fileName = "test.html";
+var createFileTitlePage=true;
+var swaggerConverter={};
+jsonFileList=process.argv.slice(3);
+
+if(jsonFileList.length>0) //Skip singular file load if list parameter is present
+{
+    splittedJSONFiles= jsonFileList[0].split(',');
+    jsonFileListLen=splittedJSONFiles.length-1;
+    for(var iSplit = 0;iSplit <= jsonFileListLen;iSplit++)
+    {
+        swaggerJSON = JSON.parse(fs.readFileSync(splittedJSONFiles[iSplit].trim(), 'utf8'));
+        html += convertToHTML(swaggerJSON);
+        createFileTitlePage=false;
+        html += "<div style='page-break-after:always'></div>"; //page break for next json file's html
+    }
+    console.log('About to write out multipe files!');
+    writeOutFiles(html,fileName);
+}
+else
+{
+    createFileTitlePage=false;
+    jsonFile = process.argv.splice(2)[0];
+    swaggerJSON = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+    html = convertToHTML(swaggerJSON);
+    writeOutFiles(html,fileName);
+}
+
+
     
 
 var sub1Counter=1; //counters for sub heading items
 var sub2Counter=1;
 var sub3Counter=1;
+var main1Counter=1;//counters for main headings now, needed a var to auto adjust when a section is headed because it's empty so counters
+//needed adjusting depending on the swagger JSON
+var main2Counter=2;
+var main3Counter=3
 // output file
-var fileName = "test.html";
-// remove output file if exists
-if(fs.existsSync(fileName))
-    fs.unlinkSync(fileName);
 
-// write output HTML file, then convert to PDF
-fs.writeFile(fileName, html, function(err){
-    if(err)
-        console.log("FAILED:" + err);
-    else{
-        console.log("done");
-        //normalize.css helps with empty pages on the end of the pdf and renders the html more consistently # http://necolas.github.io/normalize.css/
-        pdf.convert({"html" : "./test.html", "css": "./normalize.css"}, function(result) {
 
-            /* Using a buffer and callback */
-            result.toBuffer(function(returnedBuffer) {
-                console.log("return buffer");
+function writeOutFiles(htmlInput,fileName)
+{
+    // remove output file if exists
+    if(fs.existsSync(fileName))
+        fs.unlinkSync(fileName);
+    // write output HTML file, then convert to PDF
+    fs.writeFile(fileName, htmlInput, function(err){
+        if(err)
+            console.log("FAILED:" + err);
+        else{
+            console.log("done");
+            //normalize.css helps with empty pages on the end of the pdf and renders the html more consistently # http://necolas.github.io/normalize.css/
+            pdf.convert({"html" : "./test.html", "css": "./normalize.css"}, function(result) {
+
+                /* Using a buffer and callback */
+                result.toBuffer(function(returnedBuffer) {
+                    console.log("return buffer");
+                });
+
+                /* Using a readable stream */
+                var stream = result.toStream();
+
+                /* Using the temp file path */
+                var tmpPath = result.getTmpPath();
+
+                /* Using the file writer and callback */
+                result.toFile("output.pdf", function(err) {
+                    if(err)    
+                        console.log("err:" + err);
+                    else
+                        console.log("really done ...");
+
+                });
+
+                
             });
 
-            /* Using a readable stream */
-            var stream = result.toStream();
+        }
 
-            /* Using the temp file path */
-            var tmpPath = result.getTmpPath();
-
-            /* Using the file writer and callback */
-            result.toFile("output.pdf", function(err) {
-                if(err)    
-                    console.log("err:" + err);
-                else
-                    console.log("really done ...");
-
-            });
-
-            
-        });
-
-    }
-
-});
+    });
+}
 
 
 
@@ -165,6 +203,25 @@ function convertToHTML(swaggerJSON){
     html += "}";
     html += "</style>";
     html += "<body>"
+
+    if(createFileTitlePage)
+    {
+        createFileTitlePage=false;
+        html += '<div class="coverHeadings"><h1>Swagger files used</h1></div>';
+        html += '<div class="small-heading"><h3>File names</h3></div>';
+        var titlesHtml='';
+        var swaggerTitleJSON;
+        for(var iSplit2 = 0;iSplit2 <= jsonFileListLen;iSplit2++)
+        {
+            swaggerTitleJSON = JSON.parse(fs.readFileSync(splittedJSONFiles[iSplit2].trim(), 'utf8'));
+            html += "<div><span class='subheading-text'>"+splittedJSONFiles[iSplit2].trim()+"</span></div><br>";
+            titlesHtml += "<div><span class='subheading-text'>"+swaggerTitleJSON.info.title+"</span></div><br>";
+        }
+        html += '<div class="small-heading"><h3>API Titles</h3></div>';
+        html += titlesHtml;
+        html += "<div style='page-break-after:always'></div>";
+    }
+
     html += '<div class="coverHeadings"><h1>Introduction</h1></div>';
     
     html += headerSummary(swaggerJSON);
@@ -177,30 +234,48 @@ function convertToHTML(swaggerJSON){
     html +="</div>"; //END of second page breaker;
     html += "<div style='page-break-after:always'></div>";
 
-    // definitions
-    html += '<h2>1. Definitions</h2>';
-    
-    sub1Counter=1;
-    for(var dfn in swaggerJSON.definitions) {
-        // eg: Product (uber)
-        html += '<div class="div-container-margin">'; // definitions start
-        html += "<h3>1." +sub1Counter + ". " + dfn + "</h3>";
-        html += "<hr />";
-        html += renderDefinition(false, dfn, swaggerJSON.definitions);
-        html += "<br />";
-        html += '</div>'; // definitions start
-        sub1Counter++;
+  
+
+    if(typeof(swaggerJSON.definitions) !=='undefined')
+    {
+        // definitions
+        var defLenCheck=0;
+        for(var dfn in swaggerJSON.definitions) {
+            defLenCheck=1;
+        }
+        if(defLenCheck ===1)
+        {
+            html += '<h2>1. Definitions</h2>';
+        }
+        sub1Counter=1;
+        for(var dfn in swaggerJSON.definitions) {
+            // eg: Product (uber)
+            html += '<div class="div-container-margin">'; // definitions start
+            html += "<h3>1." +sub1Counter + ". " + dfn + "</h3>";
+            html += "<hr />";
+            html += renderDefinition(false, dfn, swaggerJSON.definitions);
+            html += "<br />";
+            html += '</div>'; // definitions start
+            sub1Counter++;
+        }
+        if(defLenCheck ===1)
+        {
+            html += "<div style='page-break-after:always'></div>"; 
+        }
+
     }
 
-
-    html += renderSecurityDefinitions(swaggerJSON.securityDefinitions);
-    html += "<div style='page-break-after:always'></div>";
+    if(typeof(swaggerJSON.securityDefinitions !=='undefined'))
+    {
+        html += renderSecurityDefinitions(swaggerJSON.securityDefinitions);
+    }
 
     // paths
-    html += '<h2>3. Paths</h2>';
     var pathCounter=0;
-    sub3Counter=1;
+    main3Counter = swaggerContentCheck(swaggerJSON, 'paths');
+    sub3Counter=main3Counter;
     for(var path in swaggerJSON.paths){
+        html += '<h2>'+main3Counter+'. Paths</h2>';
        // if(loopBreaker===2){break;};
        if(pathCounter===0)
        {
@@ -217,16 +292,16 @@ function convertToHTML(swaggerJSON){
             switch(action)
             {
                 case "get":
-                    html+='<h3>3.' + sub3Counter  +'.</h3><pre class="get"><code class="huge"><span>get</span>:'+path+'</code></pre>';
+                    html+='<pre class="get"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' get</span>:'+path+'</code></pre>';
                     break; 
                 case "post":
-                    html+='<h3>3.' + sub3Counter  +'.</h3><pre class="post"><code class="huge"><span>post</span>:'+path+'</code></pre>';
+                    html+='<pre class="post"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' post</span>:'+path+'</code></pre>';
                     break;
                 case "put":
-                    html+='<h3>3.' + sub3Counter  +'.</h3><pre class="put"><code class="huge"><span>put</span>:'+path+'</code></pre>';
+                    html+='<pre class="put"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' put</span>:'+path+'</code></pre>';
                     break;
                 case "delete":
-                    html+='<h3>3.' + sub3Counter  +'.</h3><pre class="delete"><code class="huge"><span>delete</span>:'+path+'</code></pre>';
+                    html+='<pre class="delete"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' delete</span>:'+path+'</code></pre>';
                     break;
             }
 
@@ -466,34 +541,115 @@ function convertToHTML(swaggerJSON){
     return html;
 }
 
+function swaggerContentCheck(swaggerJSON, section, checkOwn)
+{
+    var lenCheck=0;
+    //used to sort out the auto numbers of main content and sub sections depending on what content there is...
+    switch(section)
+    {
+        case 'security':
+            var noSecurity=false;
+            if(checkOwn)
+            {
+                if(typeof(swaggerJSON.securityDefinitions) !=='undefined')
+                {
+                    for(var dfn in swaggerJSON.securityDefinitions) {
+                        lenCheck=1;
+                    }
+                    if(lenCheck ===0)
+                    {
+                        noSecurity=true;
+                    }
+                }
+                else
+                {
+                    noSecurity=true;
+                }
+            }
+            if(typeof(swaggerJSON.definitions) !=='undefined')
+            {
+                for(var dfn in swaggerJSON.definitions) {
+                    lenCheck=1;
+                }
+                if(lenCheck===1)
+                {
+                    if(noSecurity && checkOwn)
+                    {
+                        return 1;
+                    }
+                    return 2;
+                }
+                else
+                {
+                    if(noSecurity && checkOwn)
+                    {
+                        return 0;
+                    }
+                    return 1;
+                }
+                
+            }
+            else
+            {
+                if(noSecurity && checkOwn)
+                {
+                    return 0;
+                }
+                return 1;
+            }
+            break;
+        case 'paths':
+                return (swaggerContentCheck(swaggerJSON, 'security', true) +1);
+                break;
+    }
+}
 function tableOfContents(swaggerJSON)
 {
 
-    var html='';
-    html += '<div class="coverHeadings"><h1>Table of contents</h1></div>';
-    html += '<h2>1. Definitions</h2>';
-    sub1Counter=1;
-    for(var dfn in swaggerJSON.definitions) {
-        // eg: Product (uber)
-        html += '<div class="div-container-margin">'; // definitions start
-        html += "<span><b>1." + sub1Counter +".</b> " + dfn + "</span>";
-        html += "<br><br>";
-        html += '</div>'; // definitions start
-        sub1Counter++;
+    var htmlTOC='';
+    main1Counter=1;
+    main2Counter=swaggerContentCheck(swaggerJSON,'security');
+    main3Counter=swaggerContentCheck(swaggerJSON,'paths');
+    var defLenCheck=0;
+    if(main2Counter===2)//there are definitions
+    {
+         
+            htmlTOC += '<div class="coverHeadings"><h1>Table of contents</h1></div>';
+            htmlTOC += '<h2>' +main1Counter+'. Definitions</h2>';
+            sub1Counter=main1Counter;
+            for(var dfn in swaggerJSON.definitions) {
+                // eg: Product (uber)
+                htmlTOC += '<div class="div-container-margin">'; // definitions start
+                htmlTOC += "<span><b>"+main1Counter+"." + sub1Counter +".</b> " + dfn + "</span>";
+                htmlTOC += "<br><br>";
+                htmlTOC += '</div>'; // definitions start
+                sub1Counter++;
+            }
     }
-    html += renderSecurityDefinitionsTableContents(swaggerJSON.securityDefinitions);
-    html += '<h2>3. Paths</h2>';
-    html += pathsTableContents(swaggerJSON);
-    return html;
+    if(typeof(swaggerJSON.securityDefinitions) !=='undefined')
+    {
+        htmlTOC += renderSecurityDefinitionsTableContents(swaggerJSON.securityDefinitions, main2Counter);
+    }
+    if(typeof(swaggerJSON.paths) !=='undefined')
+    {
+             htmlTOC += pathsTableContents(swaggerJSON, main3Counter);
+    }
+   return htmlTOC;
+    
 }
-function renderSecurityDefinitionsTableContents(securityDefinitions){
+function renderSecurityDefinitionsTableContents(securityDefinitions, mainCounter){
     var html = "";  
-    sub2Counter=1;  
+    sub2Counter=mainCounter;  
+    var secLenCheck=0;
+    for(var sec in securityDefinitions) {
+        secLenCheck=1;
+    }
+    if(secLenCheck ===0){return html;}
     // security
-    html += '<h2>2. Security</h2>';
+    html += '<h2>'+mainCounter+'. Security</h2>';
     html += '<div class="div-container-margin">'; // security start
     for(var sec in securityDefinitions) {
-            html += "<span><b>2." + sub2Counter +".</b> " + sec + 
+            html += "<span><b>" + mainCounter +"." + sub2Counter +".</b> " + sec + 
                 ( typeof(securityDefinitions[sec].type) !== "undefined" ? " (" + securityDefinitions[sec].type + ")" : "" ) + "</span>";
            
             html += "<br><br>";
@@ -503,10 +659,19 @@ function renderSecurityDefinitionsTableContents(securityDefinitions){
     html += '</div>'; // security end
     return html;
 }
-function pathsTableContents(swaggerJSON)
+function pathsTableContents(swaggerJSON, mainCounter)
 {
     var html ='';
     sub3Counter=1;
+    pathLenCheck=0;
+    for(var path in swaggerJSON.paths){
+        pathLenCheck=1;
+    }
+    if(pathLenCheck ===0)
+    {
+        return html;
+    }
+    html += '<h2>' +main3Counter+'. Paths</h2>';
     for(var path in swaggerJSON.paths){
      
      html += '<div class="div-container-margin">';
@@ -515,16 +680,16 @@ function pathsTableContents(swaggerJSON)
             switch(action)
             {
                 case "get":
-                    html+='<span><b>3.' + sub3Counter +'.</b> ' +'get</span>:'+path+'';
+                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'get</span>:'+path+'';
                     break; 
                 case "post":
-                    html+='<span><b>3.' + sub3Counter +'.</b> ' +'post</span>:'+path+'';
+                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'post</span>:'+path+'';
                     break;
                 case "put":
-                    html+='<span><b>3.' + sub3Counter +'.</b> ' +'put</span>:'+path+'';
+                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'put</span>:'+path+'';
                     break;
                 case "delete":
-                    html+='<span><b>3.' + sub3Counter +'.</b> ' +'delete</span>:'+path+'';
+                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'delete</span>:'+path+'';
                     break;
             }
             html += "<br><br>";
@@ -627,7 +792,6 @@ function renderDefinition(minimal, dfn, swaggerJSONdefinitions){
     }
     html += "   </tbody>";
     html += "</table>";
-
     return html;
 }
 
@@ -682,17 +846,22 @@ function headerSummary(swaggerJSON){
 
 function renderSecurityDefinitions(securityDefinitions){
     var html = "";   
-    html += "<div style='page-break-after:always'></div>"; 
+    var secLenCheck=0;
+    for(var sec in securityDefinitions) {
+        secLenCheck=1;
+    }
+    if(secLenCheck===0){return html;}
+    main2Counter= swaggerContentCheck(swaggerJSON, 'security');
     // security
-    html += '<h2>2. Security</h2>';
+    html += '<h2>'+main2Counter+'. Security</h2>';
     html += '<div class="div-container-margin">'; // security start
-    sub2Counter=1;
+    sub2Counter=main2Counter;
+
     for(var sec in securityDefinitions) {
             html += "<table class='table-margin'>";
 
             html += "<tr>";            
-
-            html += "<td colspan='2'><h3>2." + sub2Counter +". "  + sec + "</h3>"+
+            html += "<td colspan='2'><h3>"+main2Counter +"." + sub2Counter +". "  + sec + "</h3>"+
                 ( typeof(securityDefinitions[sec].type) !== "undefined" ? " (" + securityDefinitions[sec].type + ")" : "" ) + "</td>";
 
             html += "</tr>";            
@@ -738,6 +907,6 @@ function renderSecurityDefinitions(securityDefinitions){
             sub2Counter++;         
     }
     html += '</div>'; // security end
-
+    html += "<div style='page-break-after:always'></div>"; //page break for next json file's html
     return html;
 }
