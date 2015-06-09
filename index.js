@@ -16,30 +16,35 @@ var jsonFileListLen;
 var swaggerJSON;
 var html='';
 var jsonFile;
-var splittedJSONFiles;
 var fileName = "test.html";
 var createFileTitlePage=true;
 var swaggerConverter={};
-jsonFileList=process.argv.slice(3);
+jsonFileList=process.argv.slice(2);
 
-if(jsonFileList.length>0) //Skip singular file load if list parameter is present
+console.dir(jsonFileList);
+var splitJSONFiles= jsonFileList[0].split(',')
+
+if(splitJSONFiles.length>1) //Skip singular file load if list parameter is present
 {
-    splittedJSONFiles= jsonFileList[0].split(',');
-    jsonFileListLen=splittedJSONFiles.length-1;
+    console.log("more than one");
+
+    jsonFileListLen=splitJSONFiles.length-1;
     for(var iSplit = 0;iSplit <= jsonFileListLen;iSplit++)
     {
-        swaggerJSON = JSON.parse(fs.readFileSync(splittedJSONFiles[iSplit].trim(), 'utf8'));
+        swaggerJSON = JSON.parse(fs.readFileSync(splitJSONFiles[iSplit].trim(), 'utf8'));
         html += convertToHTML(swaggerJSON);
         createFileTitlePage=false;
         html += "<div style='page-break-after:always'></div>"; //page break for next json file's html
     }
-    console.log('About to write out multipe files!');
+    console.log('About to write out multiple files!');
     writeOutFiles(html,fileName);
 }
 else
 {
+    console.log("one");
+
     createFileTitlePage=false;
-    jsonFile = process.argv.splice(2)[0];
+    jsonFile = jsonFileList[0].split(',')[0];
     swaggerJSON = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
     html = convertToHTML(swaggerJSON);
     writeOutFiles(html,fileName);
@@ -194,7 +199,7 @@ function convertToHTML(swaggerJSON){
     html += ".coverHeadings {";
     html += "color: #0f6ab4";
     html += "}";
-    html += "@media print{.footer {position:relative;top:-50px;height:10px;text-align:center;color: #0f6ab4}}";
+    html += "@media print{.footer {position:relative;top:-50px;height:10px;text-align:center;}}";
     html += ".moddedHR {";
     html += "border: none;";
     html += "height: 2px;";
@@ -207,17 +212,17 @@ function convertToHTML(swaggerJSON){
     if(createFileTitlePage)
     {
         createFileTitlePage=false;
-        html += '<div class="coverHeadings"><h1>Swagger files used</h1></div>';
-        html += '<div class="small-heading"><h3>File names</h3></div>';
+        /*html += '<div class="coverHeadings"><h1>Swagger files used</h1></div>';
+        html += '<div class="small-heading"><h3>File names</h3></div>';*/
         var titlesHtml='';
-        var swaggerTitleJSON;
+        //var swaggerTitleJSON;
         for(var iSplit2 = 0;iSplit2 <= jsonFileListLen;iSplit2++)
         {
-            swaggerTitleJSON = JSON.parse(fs.readFileSync(splittedJSONFiles[iSplit2].trim(), 'utf8'));
-            html += "<div><span class='subheading-text'>"+splittedJSONFiles[iSplit2].trim()+"</span></div><br>";
-            titlesHtml += "<div><span class='subheading-text'>"+swaggerTitleJSON.info.title+"</span></div><br>";
+            swaggerTitleJSON = JSON.parse(fs.readFileSync(splitJSONFiles[iSplit2].trim(), 'utf8'));
+            //html += "<div>"+splitJSONFiles[iSplit2].trim()+"</div><br>";
+            titlesHtml += "<div>"+swaggerTitleJSON.info.title+"</div><br>";
         }
-        html += '<div class="small-heading"><h3>API Titles</h3></div>';
+        html += '<h1>API Documentation for:</h1>';
         html += titlesHtml;
         html += "<div style='page-break-after:always'></div>";
     }
@@ -274,8 +279,12 @@ function convertToHTML(swaggerJSON){
     var pathCounter=0;
     main3Counter = swaggerContentCheck(swaggerJSON, 'paths');
     sub3Counter=main3Counter;
+        
+    html += '<h2>'+main3Counter+'. Paths</h2>';
+
+
     for(var path in swaggerJSON.paths){
-        html += '<h2>'+main3Counter+'. Paths</h2>';
+        
        // if(loopBreaker===2){break;};
        if(pathCounter===0)
        {
@@ -292,16 +301,16 @@ function convertToHTML(swaggerJSON){
             switch(action)
             {
                 case "get":
-                    html+='<pre class="get"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' get</span>:'+path+'</code></pre>';
+                    html+='<pre class="get"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' get</span>&nbsp;&nbsp;'+path+'</code></pre>';
                     break; 
                 case "post":
-                    html+='<pre class="post"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' post</span>:'+path+'</code></pre>';
+                    html+='<pre class="post"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' post</span>&nbsp;&nbsp;'+path+'</code></pre>';
                     break;
                 case "put":
-                    html+='<pre class="put"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' put</span>:'+path+'</code></pre>';
+                    html+='<pre class="put"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' put</span>&nbsp;&nbsp;'+path+'</code></pre>';
                     break;
                 case "delete":
-                    html+='<pre class="delete"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' delete</span>:'+path+'</code></pre>';
+                    html+='<pre class="delete"><code class="huge"><span>'+main3Counter +'.' + sub3Counter +' delete</span>&nbsp;&nbsp;'+path+'</code></pre>';
                     break;
             }
 
@@ -680,16 +689,16 @@ function pathsTableContents(swaggerJSON, mainCounter)
             switch(action)
             {
                 case "get":
-                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'get</span>:'+path+'';
+                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'get</span>&nbsp;&nbsp;'+path+'';
                     break; 
                 case "post":
-                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'post</span>:'+path+'';
+                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'post</span>&nbsp;&nbsp;'+path+'';
                     break;
                 case "put":
-                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'put</span>:'+path+'';
+                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'put</span>&nbsp;&nbsp;'+path+'';
                     break;
                 case "delete":
-                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'delete</span>:'+path+'';
+                    html+='<span><b>' +mainCounter +'.' + sub3Counter +'.</b> ' +'delete</span>&nbsp;&nbsp;'+path+'';
                     break;
             }
             html += "<br><br>";
@@ -801,9 +810,11 @@ function headerSummary(swaggerJSON){
 
     html+="<div><h1>"+ swaggerJSON.info.title +"</h1></div>";
      if(swaggerJSON.info.description != null) {
-        html+= "<h3>"+ swaggerJSON.info.description.replace('\n\n', '<br />') +"</h3>";
+        html+= "<div>"+ swaggerJSON.info.description.replace('\n\n', '<br />') +"</div>";
     }
-    html+="<div class='div-container-heading-summ'>";
+    html += "<br />";
+
+    /*html+="<div class='div-container-heading-summ'>";
     if(swaggerJSON.info.version != null) {
         html += "<div><span class='small-heading'>Version:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.info.version+"</span></div>";
     }
@@ -836,7 +847,46 @@ function headerSummary(swaggerJSON){
             html += "<div><span class='small-heading'>Scheme:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.schemes.join(', ')+"</span></div>";
         }
     }
-    html += "</div>"
+    html += "</div>";*/
+
+    html+="<table>";
+    if(swaggerJSON.info.version != null) {
+        html += "<tr><td><span class='small-heading'>Version:</span></td><td><span class='subheading-text'>"+swaggerJSON.info.version+"</span></td></tr>";
+    }
+    if(swaggerJSON.info.termsOfService != null) {
+       html += "<td><td><span class='small-heading'>Terms of service:</span></td><td><span class='subheading-text'>"+swaggerJSON.info.termsOfService+"</span></td></tr>";
+    }
+     if(swaggerJSON.info.contact != null){
+        for(var contactMethod in swaggerJSON.info.contact){
+            html += "<tr><td><span class='small-heading'>Contact:</span></td><td><span class='subheading-text'><strong>"+contactMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.contact[contactMethod]+"</span></td></tr>";
+        }
+    }
+    if(swaggerJSON.info.license != null){
+        for(var licenseMethod in swaggerJSON.info.license){
+            html += "<tr><td><span class='small-heading'>License:</span></td><td><span class='subheading-text'><strong>"+licenseMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.license[licenseMethod]+"</span></td></tr>";
+        }
+    }
+    if(swaggerJSON.host != null){
+            html += "<tr><td><span class='small-heading'>Host:</span></td><td><span class='subheading-text'>"+swaggerJSON.host+"</span></td></tr>";
+    }
+    if(swaggerJSON.basePath != null){
+        html += "<tr><td><span class='small-heading'>Base Path:</span></td><td><span class='subheading-text'>"+swaggerJSON.basePath+"</span></td></tr>";
+    }
+    if(swaggerJSON.produces != null){
+        html += "<tr><td><span class='small-heading'>Produces:</span></td><td><span class='subheading-text'>"+swaggerJSON.produces.join(', ')+"</span></td></tr>";
+    }
+    if(swaggerJSON.consumes != null){
+        html += "<tr><td><span class='small-heading'>Consumes:</span></td><td><span class='subheading-text'>"+swaggerJSON.consumes.join(', ')+"</span></td></tr>";
+    }
+  
+    if(swaggerJSON.schemes != null){
+        if(swaggerJSON.schemes.length !== 0)
+        {
+            html += "<tr><td><span class='small-heading'>Scheme:</span></td><td><span class='subheading-text'>"+swaggerJSON.schemes.join(', ')+"</span></td></tr>";
+        }
+    }
+    html += "</table>";
+
 
     return html;
 }
@@ -861,10 +911,16 @@ function renderSecurityDefinitions(securityDefinitions){
             html += "<table class='table-margin'>";
 
             html += "<tr>";            
-            html += "<td colspan='2'><h3>"+main2Counter +"." + sub2Counter +". "  + sec + "</h3>"+
-                ( typeof(securityDefinitions[sec].type) !== "undefined" ? " (" + securityDefinitions[sec].type + ")" : "" ) + "</td>";
+            html += "<td colspan='2'><h3>"+main2Counter +"." + sub2Counter +". "  + sec +
+                ( typeof(securityDefinitions[sec].type) !== "undefined" ? " (" + securityDefinitions[sec].type + ")" : "" ) + "</h3>" + "</td>";
 
             html += "</tr>";            
+            if(typeof(securityDefinitions[sec].description) !== "undefined"){
+                html += "<tr>";            
+                html += "<td style='width:15%;'>Description</td>";    
+                html += "<td>" +( typeof(securityDefinitions[sec].description) !== "undefined" ? securityDefinitions[sec].description : "" ) + "</td>";
+                html += "</tr>";       
+            }
             if(typeof(securityDefinitions[sec].flow) !== "undefined"){
                 html += "<tr>";            
                 html += "<td style='width:15%;'>Flow</td>";    
