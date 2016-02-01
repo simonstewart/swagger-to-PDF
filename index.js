@@ -8,7 +8,7 @@ var
    
 // consts
 var    
-    FONT_STYLE='font-family: "Helvetica Neue",Trebuchet MS, sans-serif;font-size: 15px;color: #444';
+    FONT_STYLE='font-family: "Helvetica Neue",Trebuchet MS, sans-serif;font-size: 12px;color: #444';
     ALTERNATE_ROW_STYLE = ";background-color: #EAEAEA";
 
 var jsonFileList
@@ -76,27 +76,30 @@ function writeOutFiles(htmlInput,fileName)
             console.log("done");
             //normalize.css helps with empty pages on the end of the pdf and renders the html more consistently # http://necolas.github.io/normalize.css/
             pdf.convert({"html" : "./test.html", "css": "./normalize.css"}, function(result) {
+                if(result._err)    
+                    console.log("err:" + result._err);
+				else{
 
-                /* Using a buffer and callback */
-                result.toBuffer(function(returnedBuffer) {
-                    console.log("return buffer");
-                });
+					/* Using a buffer and callback */
+					result.toBuffer(function(returnedBuffer) {
+					    console.log("return buffer");
+					});
 
-                /* Using a readable stream */
-                var stream = result.toStream();
+					/* Using a readable stream */
+					var stream = result.toStream();
 
-                /* Using the temp file path */
-                var tmpPath = result.getTmpPath();
+					/* Using the temp file path */
+					var tmpPath = result.getTmpPath();
 
-                /* Using the file writer and callback */
-                result.toFile("output.pdf", function(err) {
-                    if(err)    
-                        console.log("err:" + err);
-                    else
-                        console.log("really done ...");
+					/* Using the file writer and callback */
+					result.toFile("./output.pdf", function(err) {
+						if(err)    
+							console.log("err:" + err);
+						else
+							console.log("really done ...");
 
-                });
-
+					});
+				};
                 
             });
 
@@ -142,6 +145,7 @@ function convertToHTML(swaggerJSON){
     html += "}";
     html += ".table-margin {";
     html += "width:100%;";
+	html += "font-size:100%;";
     html += "margin-top:0px;";
     html += "}";
     html += ".table-std {";
@@ -181,7 +185,7 @@ function convertToHTML(swaggerJSON){
     html += "padding: 10px;";
     html += "margin-bottom: 2px;";
     html += "color:#FFF;";
-    html += "font-size:18px;";
+    html += "font-size:100%;";
     html += "}";
     html += "td {";
     html += "padding-top:4px;";
@@ -205,6 +209,10 @@ function convertToHTML(swaggerJSON){
     html += "height: 2px;";
     html += "color: #0f6ab4;";
     html += "background-color: #0f6ab4;";
+    html += "}";
+    html += "list[type=bullet] item description:before{";
+	html += "content:\"\\a\";";
+	html += "white-space:pre;";
     html += "}";
     html += "</style>";
     html += "<body>"
@@ -393,7 +401,9 @@ function convertToHTML(swaggerJSON){
                         var dfn = param.schema["$ref"].split('/');
                         paramDescription += "<br />" + renderDefinition(true, dfn[dfn.length-1] , swaggerJSON.definitions);
                     }
-
+					if  (!paramDescription){
+						paramDescription = "&nbsp;";
+					}
                     html += "       <td class='td-alignment-small-no-width'>" + paramDescription + "</td>";
 
                     // required
@@ -763,20 +773,20 @@ function renderDefinition(minimal, dfn, swaggerJSONdefinitions){
                 
                 if(typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["$ref"] !== "undefined"){
                     var items = swaggerJSONdefinitions[dfn].properties[dfnProps]["$ref"].split('/');
-                    var dfn = items[items.length-1];
-                    html += "See <b>" + dfn + "</b> in the <b>Definitions</b> section.";
+                    var subdfn = items[items.length-1];
+                    html += "See <b>" + subdfn + "</b> in the <b>Definitions</b> section.";
                 }
                 else if(typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["items"] !== "undefined"){
                     if (typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["items"] === "string") {
                         var items = swaggerJSONdefinitions[dfn].properties[dfnProps]["items"].split('/');
-                        var dfn = items[items.length-1];
-                        html += "See <b>" + dfn + "</b> in the <b>Definitions</b> section.";
+                        var subdfn = items[items.length-1];
+                        html += "See <b>" + subdfn + "</b> in the <b>Definitions</b> section.";
                     }
                     else if (typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["items"] === "object") {
                         if (typeof swaggerJSONdefinitions[dfn].properties[dfnProps]["items"]["$ref"] !== "undefined"){
                             var items = swaggerJSONdefinitions[dfn].properties[dfnProps]["items"]["$ref"].split('/');
-                            var dfn = items[items.length-1];
-                            html += "See <b>" + dfn + "</b> in the <b>Definitions</b> section.";
+                            var subdfn = items[items.length-1];
+                            html += "See <b>" + subdfn + "</b> in the <b>Definitions</b> section.";
                         }
                     }
                 }
