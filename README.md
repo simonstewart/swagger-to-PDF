@@ -16,7 +16,7 @@ These are the current plans:
 * additional options for mark up
 
 ## Dependencies
-* phantomjs-pdf
+* phantom-html2pdf
 
 ## Contribution
 If you've got value out of this and have ideas, please send pull requests.
