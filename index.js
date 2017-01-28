@@ -1,55 +1,58 @@
-
-
-
 var
     fs = require('fs'),
     pdf = require('phantom-html2pdf');
+    yaml = require('yamljs');
 
-   
+
+
 // consts
-var    
-    FONT_STYLE='font-family: "Helvetica Neue",Trebuchet MS, sans-serif;font-size: 12px;color: #444';
-    ALTERNATE_ROW_STYLE = ";background-color: #EAEAEA";
+var
+    FONT_STYLE = 'font-family: "Helvetica Neue",Trebuchet MS, sans-serif;font-size: 12px;color: #444';
+ALTERNATE_ROW_STYLE = ";background-color: #EAEAEA";
 
-var jsonFileList
-var jsonFileListLen;
+var inputFileList
+var inputFileListLen;
 var swaggerJSON;
-var html='';
-var jsonFile;
+var html = '';
+var inputFile;
 var fileName = "test.html";
-var createFileTitlePage=true;
-var swaggerConverter={};
-jsonFileList=process.argv.slice(2);
+var createFileTitlePage = true;
+var swaggerConverter = {};
+inputFileList = process.argv.slice(2);
 
-console.dir(jsonFileList);
-var splitJSONFiles= jsonFileList[0].split(',')
+console.dir(inputFileList);
+var splitInputFiles = inputFileList[0].split(',')
 
-if(splitJSONFiles.length>1) //Skip singular file load if list parameter is present
+if (splitInputFiles.length > 1) //Skip singular file load if list parameter is present
 {
     console.log("more than one");
 
-    jsonFileListLen=splitJSONFiles.length-1;
-    for(var iSplit = 0;iSplit <= jsonFileListLen;iSplit++)
-    {
-        swaggerJSON = JSON.parse(fs.readFileSync(splitJSONFiles[iSplit].trim(), 'utf8'));
+    inputFileListLen = splitInputFiles.length - 1;
+    for (var iSplit = 0; iSplit <= inputFileListLen; iSplit++) {
+        if (splitInputFiles[iSplit].split('.').pop() == "yaml") {
+            swaggerJSON = yaml.load(splitInputFiles[iSplit].trim());
+        } else {
+            swaggerJSON = JSON.parse(fs.readFileSync(splitInputFiles[iSplit].trim(), 'utf8'));
+        }
         html += convertToHTML(swaggerJSON);
-        createFileTitlePage=false;
+        createFileTitlePage = false;
         html += "<div style='page-break-after:always'></div>"; //page break for next json file's html
     }
     console.log('About to write out multiple files!');
-    writeOutFiles(html,fileName);
-}
-else
-{
+    writeOutFiles(html, fileName);
+} else {
     console.log("one");
 
-    createFileTitlePage=false;
-    jsonFile = jsonFileList[0].split(',')[0];
-    swaggerJSON = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+    createFileTitlePage = false;
+    inputFile = inputFileList[0].split(',')[0];
+    if (inputFile.split('.').pop() == "yaml") {
+        swaggerJSON = yaml.load(inputFile);
+    } else {
+        swaggerJSON = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
+    }
     html = convertToHTML(swaggerJSON);
-    writeOutFiles(html,fileName);
+    writeOutFiles(html, fileName);
 }
-
 
     
 
