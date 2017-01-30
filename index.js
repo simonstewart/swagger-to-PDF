@@ -1,17 +1,8 @@
-
-
-
-var
-    fs = require('fs'),
-    pdf = require('phantom-html2pdf');
-
-   
+var fs = require('fs'), pdf = require('phantom-html2pdf');
 // consts
-var    
-    FONT_STYLE='font-family: "Helvetica Neue",Trebuchet MS, sans-serif;font-size: 12px;color: #444';
-    ALTERNATE_ROW_STYLE = ";background-color: #EAEAEA";
-
-var jsonFileList
+var FONT_STYLE='font-family: "Helvetica Neue",Trebuchet MS, sans-serif;font-size: 12px;color: #444';
+var ALTERNATE_ROW_STYLE = ";background-color: #EAEAEA";
+var jsonFileList;
 var jsonFileListLen;
 var swaggerJSON;
 var html='';
@@ -22,7 +13,19 @@ var swaggerConverter={};
 jsonFileList=process.argv.slice(2);
 
 console.dir(jsonFileList);
-var splitJSONFiles= jsonFileList[0].split(',')
+var splitJSONFiles= jsonFileList[0].split(',');
+var config = {};
+
+try{
+	config = JSON.parse(fs.readFileSync(".config"));
+	config.html = fileName;
+} catch (err){
+	console.log(err);
+}
+config.html = fileName;
+config.css = "./normalize.css";
+
+console.log(config);
 
 if(splitJSONFiles.length>1) //Skip singular file load if list parameter is present
 {
@@ -75,7 +78,7 @@ function writeOutFiles(htmlInput,fileName)
         else{
             console.log("done");
             //normalize.css helps with empty pages on the end of the pdf and renders the html more consistently # http://necolas.github.io/normalize.css/
-            pdf.convert({"html" : "./test.html", "css": "./normalize.css"}, function(err, result) {
+            pdf.convert(config, function(err, result) {
                 if(err)    
                     console.log("err:" + err);
 				else{
