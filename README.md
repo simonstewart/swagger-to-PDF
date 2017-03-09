@@ -3,7 +3,9 @@
 Creates a PDF from a Swagger JSON or YAML file.
 
 ## How to use
-node index.js "path to your Swagger.json file" or node index.js "path to your Swagger.yaml file"
+    npm install
+    node index.js "path to your Swagger.json file"
+    or node index.js "path to your Swagger.yaml file"
 
 Also supports combining several Swagger JSON or YAML files into 1 output PDF:
 node index.js "file1.json,file2.json,file3.json" or node index.js "file1.yaml,file2.yaml,file3.yaml"

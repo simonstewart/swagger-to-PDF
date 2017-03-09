@@ -20,8 +20,21 @@ var createFileTitlePage = true;
 var swaggerConverter = {};
 inputFileList = process.argv.slice(2);
 
+
 console.dir(inputFileList);
 var splitInputFiles = inputFileList[0].split(',')
+var config = {};
+
+try{
+	config = JSON.parse(fs.readFileSync(".config"));
+	config.html = fileName;
+} catch (err){
+	console.log(err);
+}
+config.html = fileName;
+config.css = "./normalize.css";
+
+console.log(config);
 
 if (splitInputFiles.length > 1) //Skip singular file load if list parameter is present
 {
@@ -78,7 +91,7 @@ function writeOutFiles(htmlInput,fileName)
         else{
             console.log("done");
             //normalize.css helps with empty pages on the end of the pdf and renders the html more consistently # http://necolas.github.io/normalize.css/
-            pdf.convert({"html" : "./test.html", "css": "./normalize.css"}, function(err, result) {
+            pdf.convert(config, function(err, result) {
                 if(err)    
                     console.log("err:" + err);
 				else{
