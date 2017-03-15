@@ -532,13 +532,13 @@ function convertToHTML(swaggerJSON){
                         responseSchemaHTML += "   </tr>";
                         hasResponseSchema = true;
                     }
-                    else{
+                   /* else{
                         responseSchemaHTML += "   <tr>";
                         responseSchemaHTML += "       <td class='td-alignment-small'>&nbsp;</td>";
                         responseSchemaHTML += "       <td class='td-alignment-std'>" + renderSchemaItems(responseSchema, swaggerJSON.definitions) + "</td>";
                         responseSchemaHTML += "   </tr>";
                         hasResponseSchema = true;
-                    }
+                    } */
                 }
                 responseSchemaHTML += "       </table>";      
                 if(hasResponseSchema)
@@ -736,9 +736,9 @@ function renderSchemaItems(schemaItems, swaggerDefinitions){
 
     }
     else{
-
-        html += "Other schema item:" + schemaItems;
-
+        if(typeof schemaItems.type !== "undefined"){
+            html += "Items type: " + schemaItems.type;
+        }
     }
 
     return html;
