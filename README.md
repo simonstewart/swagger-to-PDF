@@ -13,7 +13,6 @@ Also supports combining several Swagger JSON files into 1 output PDF:
 These are the current plans:
 * code clean up 
 * further testing 
-* DONE combining several JSON files into 1 output 
 * additional options for mark up
 
 ## Dependencies
