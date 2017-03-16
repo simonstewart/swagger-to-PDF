@@ -532,13 +532,15 @@ function convertToHTML(swaggerJSON){
                         responseSchemaHTML += "   </tr>";
                         hasResponseSchema = true;
                     }
-                   /* else{
-                        responseSchemaHTML += "   <tr>";
-                        responseSchemaHTML += "       <td class='td-alignment-small'>&nbsp;</td>";
-                        responseSchemaHTML += "       <td class='td-alignment-std'>" + renderSchemaItems(responseSchema, swaggerJSON.definitions) + "</td>";
-                        responseSchemaHTML += "   </tr>";
-                        hasResponseSchema = true;
-                    } */
+                    else{
+                        if (typeof responseSchema["$ref"] !== "undefined" || responseSchema.type == "array") {
+                            responseSchemaHTML += "   <tr>";
+                            responseSchemaHTML += "       <td class='td-alignment-small'>&nbsp;</td>";
+                            responseSchemaHTML += "       <td class='td-alignment-std'>" + renderSchemaItems(responseSchema, swaggerJSON.definitions) + "</td>";
+                            responseSchemaHTML += "   </tr>";
+                            hasResponseSchema = true;
+                        }
+                    }
                 }
                 responseSchemaHTML += "       </table>";      
                 if(hasResponseSchema)
