@@ -128,6 +128,10 @@ function convertToHTML(swaggerJSON){
     html += "border-left-width: 5px;";
     html += "border-radius: 3px;";
     html += "}";
+    html += ".header-small-heading {";
+    html += "font-weight: bold;";
+    html += "float: right;";
+    html += "}";
     html += ".small-heading {";
     html += "font-weight: bold;";
     html += "}";
@@ -533,11 +537,13 @@ function convertToHTML(swaggerJSON){
                         hasResponseSchema = true;
                     }
                     else{
-                        responseSchemaHTML += "   <tr>";
-                        responseSchemaHTML += "       <td class='td-alignment-small'>&nbsp;</td>";
-                        responseSchemaHTML += "       <td class='td-alignment-std'>" + renderSchemaItems(responseSchema, swaggerJSON.definitions) + "</td>";
-                        responseSchemaHTML += "   </tr>";
-                        hasResponseSchema = true;
+                        if (typeof responseSchema["$ref"] !== "undefined" || responseSchema.type == "array") {
+                            responseSchemaHTML += "   <tr>";
+                            responseSchemaHTML += "       <td class='td-alignment-small'>&nbsp;</td>";
+                            responseSchemaHTML += "       <td class='td-alignment-std'>" + renderSchemaItems(responseSchema, swaggerJSON.definitions) + "</td>";
+                            responseSchemaHTML += "   </tr>";
+                            hasResponseSchema = true;
+                        }
                     }
                 }
                 responseSchemaHTML += "       </table>";      
@@ -736,9 +742,9 @@ function renderSchemaItems(schemaItems, swaggerDefinitions){
 
     }
     else{
-
-        html += "Other schema item:" + schemaItems;
-
+        if(typeof schemaItems.type !== "undefined"){
+            html += "Items type: " + schemaItems.type;
+        }
     }
 
     return html;
@@ -829,73 +835,73 @@ function headerSummary(swaggerJSON){
 
     /*html+="<div class='div-container-heading-summ'>";
     if(swaggerJSON.info.version != null) {
-        html += "<div><span class='small-heading'>Version:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.info.version+"</span></div>";
+        html += "<div><span class='header-small-heading'>Version:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.info.version+"</span></div>";
     }
     if(swaggerJSON.info.termsOfService != null) {
-       html += "<div><span class='small-heading'>Terms of service:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.info.termsOfService+"</span></div>";
+       html += "<div><span class='header-small-heading'>Terms of service:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.info.termsOfService+"</span></div>";
     }
      if(swaggerJSON.info.contact != null){
         for(var contactMethod in swaggerJSON.info.contact){
-            html += "<div><span class='small-heading'>Contact:</span>&nbsp;&nbsp;<span class='subheading-text'><strong>"+contactMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.contact[contactMethod]+"</span></div>";
+            html += "<div><span class='header-small-heading'>Contact:</span>&nbsp;&nbsp;<span class='subheading-text'><strong>"+contactMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.contact[contactMethod]+"</span></div>";
         }
     }
     if(swaggerJSON.info.license != null){
         for(var licenseMethod in swaggerJSON.info.license){
-            html += "<div><span class='small-heading'>License:</span>&nbsp;&nbsp;<span class='subheading-text'><strong>"+licenseMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.license[licenseMethod]+"</span></div>";
+            html += "<div><span class='header-small-heading'>License:</span>&nbsp;&nbsp;<span class='subheading-text'><strong>"+licenseMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.license[licenseMethod]+"</span></div>";
         }
     }
     if(swaggerJSON.host != null){
-            html += "<div><span class='small-heading'>Host:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.host+"</span></div>";
+            html += "<div><span class='header-small-heading'>Host:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.host+"</span></div>";
     }
     if(swaggerJSON.basePath != null){
-        html += "<div><span class='small-heading'>Base Path:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.basePath+"</span></div>";
+        html += "<div><span class='header-small-heading'>Base Path:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.basePath+"</span></div>";
     }
     if(swaggerJSON.produces != null){
-        html += "<div><span class='small-heading'>Produces:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.produces.join(', ')+"</span></div>";
+        html += "<div><span class='header-small-heading'>Produces:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.produces.join(', ')+"</span></div>";
     }
   
     if(swaggerJSON.schemes != null){
         if(swaggerJSON.schemes.length !== 0)
         {
-            html += "<div><span class='small-heading'>Scheme:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.schemes.join(', ')+"</span></div>";
+            html += "<div><span class='header-small-heading'>Scheme:</span>&nbsp;&nbsp;<span class='subheading-text'>"+swaggerJSON.schemes.join(', ')+"</span></div>";
         }
     }
     html += "</div>";*/
 
     html+="<table>";
     if(swaggerJSON.info.version != null) {
-        html += "<tr><td><span class='small-heading'>Version:</span></td><td><span class='subheading-text'>"+swaggerJSON.info.version+"</span></td></tr>";
+        html += "<tr><td><span class='header-small-heading'>Version:</span></td><td><span class='subheading-text'>"+swaggerJSON.info.version+"</span></td></tr>";
     }
     if(swaggerJSON.info.termsOfService != null) {
-       html += "<td><td><span class='small-heading'>Terms of service:</span></td><td><span class='subheading-text'>"+swaggerJSON.info.termsOfService+"</span></td></tr>";
+       html += "<td><td><span class='header-small-heading'>Terms of service:</span></td><td><span class='subheading-text'>"+swaggerJSON.info.termsOfService+"</span></td></tr>";
     }
      if(swaggerJSON.info.contact != null){
         for(var contactMethod in swaggerJSON.info.contact){
-            html += "<tr><td><span class='small-heading'>Contact:</span></td><td><span class='subheading-text'><strong>"+contactMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.contact[contactMethod]+"</span></td></tr>";
+            html += "<tr><td><span class='header-small-heading'>Contact "+contactMethod+":</span></td><td><span class='subheading-text'>"+swaggerJSON.info.contact[contactMethod]+"</span></td></tr>";
         }
     }
     if(swaggerJSON.info.license != null){
         for(var licenseMethod in swaggerJSON.info.license){
-            html += "<tr><td><span class='small-heading'>License:</span></td><td><span class='subheading-text'><strong>"+licenseMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.license[licenseMethod]+"</span></td></tr>";
+            html += "<tr><td><span class='header-small-heading'>License:</span></td><td><span class='subheading-text'><strong>"+licenseMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.license[licenseMethod]+"</span></td></tr>";
         }
     }
     if(swaggerJSON.host != null){
-            html += "<tr><td><span class='small-heading'>Host:</span></td><td><span class='subheading-text'>"+swaggerJSON.host+"</span></td></tr>";
+            html += "<tr><td><span class='header-small-heading'>Host:</span></td><td><span class='subheading-text'>"+swaggerJSON.host+"</span></td></tr>";
     }
     if(swaggerJSON.basePath != null){
-        html += "<tr><td><span class='small-heading'>Base Path:</span></td><td><span class='subheading-text'>"+swaggerJSON.basePath+"</span></td></tr>";
+        html += "<tr><td><span class='header-small-heading'>Base Path:</span></td><td><span class='subheading-text'>"+swaggerJSON.basePath+"</span></td></tr>";
     }
     if(swaggerJSON.produces != null){
-        html += "<tr><td><span class='small-heading'>Produces:</span></td><td><span class='subheading-text'>"+swaggerJSON.produces.join(', ')+"</span></td></tr>";
+        html += "<tr><td><span class='header-small-heading'>Produces:</span></td><td><span class='subheading-text'>"+swaggerJSON.produces.join(', ')+"</span></td></tr>";
     }
     if(swaggerJSON.consumes != null){
-        html += "<tr><td><span class='small-heading'>Consumes:</span></td><td><span class='subheading-text'>"+swaggerJSON.consumes.join(', ')+"</span></td></tr>";
+        html += "<tr><td><span class='header-small-heading'>Consumes:</span></td><td><span class='subheading-text'>"+swaggerJSON.consumes.join(', ')+"</span></td></tr>";
     }
   
     if(swaggerJSON.schemes != null){
         if(swaggerJSON.schemes.length !== 0)
         {
-            html += "<tr><td><span class='small-heading'>Scheme:</span></td><td><span class='subheading-text'>"+swaggerJSON.schemes.join(', ')+"</span></td></tr>";
+            html += "<tr><td><span class='header-small-heading'>Scheme:</span></td><td><span class='subheading-text'>"+swaggerJSON.schemes.join(', ')+"</span></td></tr>";
         }
     }
     html += "</table>";
