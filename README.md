@@ -3,10 +3,12 @@
 Creates a PDF from a Swagger JSON file.
 
 ## How to use
+
     npm install
     node index.js "path to your Swagger.json file"
 
 Also supports combining several Swagger JSON files into 1 output PDF:
+
     node index.js "file1.json,file2.json,file3.json"
 
 ## Future
