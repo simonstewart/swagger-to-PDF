@@ -130,6 +130,7 @@ function convertToHTML(swaggerJSON){
     html += "}";
     html += ".small-heading {";
     html += "font-weight: bold;";
+    html += "float: right;";
     html += "}";
     html += ".div-container-heading-summ {";
     html += "margin-left: 20px;";
@@ -873,7 +874,7 @@ function headerSummary(swaggerJSON){
     }
      if(swaggerJSON.info.contact != null){
         for(var contactMethod in swaggerJSON.info.contact){
-            html += "<tr><td><span class='small-heading'>Contact:</span></td><td><span class='subheading-text'><strong>"+contactMethod+"</strong>: </span><span class='subheading-text'>"+swaggerJSON.info.contact[contactMethod]+"</span></td></tr>";
+            html += "<tr><td><span class='small-heading'>Contact "+contactMethod+":</span></td><td><span class='subheading-text'>"+swaggerJSON.info.contact[contactMethod]+"</span></td></tr>";
         }
     }
     if(swaggerJSON.info.license != null){
