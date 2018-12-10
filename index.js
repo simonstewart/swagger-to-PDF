@@ -1,5 +1,6 @@
 const fs = require('fs');
 const converter = require('./converter');
+const pdf = require('phantom-html2pdf');
 
 function convertToHtml(jsonFileList) {
     const splitJSONFiles = jsonFileList.split(',');
@@ -18,10 +19,9 @@ function convertToHtml(jsonFileList) {
     fs.writeFile(htmlFileName, html, err => {
         if (err) {
             console.log('err:' + err);
-        }
-        else {
+        } else {
             console.log('Done writing ' + htmlFileName);
-        };
+        }
     });
 }
 
@@ -39,40 +39,49 @@ function convertToPdf(jsonFileList) {
             ? splitJSONFiles[0].substr(0, splitJSONFiles[0].lastIndexOf('.')) + '.pdf'
             : './output.pdf';
 
-            let config = {
-                css = './normalize.css',
-                html
-            };
+    let config = {
+        css: './normalize.css',
+        html
+    };
 
-            pdf.convert(config, function(err, result) {
-                if (err) console.log('err:' + err);
-                else {
-                    /* Using a buffer and callback */
-                    result.toBuffer(function(returnedBuffer) {
-                        console.log('return buffer');
-                    });
+    pdf.convert(config, function(err, result) {
+        if (err) console.log('err:' + err);
+        else {
+            /* Using a buffer and callback */
+            result.toBuffer(function(returnedBuffer) {
+                console.log('return buffer');
+            });
 
-                    /* Using a readable stream */
-                    var stream = result.toStream();
+            /* Using a readable stream */
+            var stream = result.toStream();
 
-                    /* Using the temp file path */
-                    var tmpPath = result.getTmpPath();
+            /* Using the temp file path */
+            var tmpPath = result.getTmpPath();
 
-                    /* Using the file writer and callback */
-                    result.toFile(pdfFileName, function(err) {
-                        if (err) {
-                            console.log('err:' + err);
-                        }
-                        else {
-                            console.log('Done writing ' + pdfFileName);
-                        };
-                    });
+            /* Using the file writer and callback */
+            result.toFile(pdfFileName, function(err) {
+                if (err) {
+                    console.log('err:' + err);
+                } else {
+                    console.log('Done writing ' + pdfFileName);
                 }
             });
+        }
+    });
 }
 
-module.exports = {
-    convertToHtml,
-    convertToPdf,
-    converter
-};
+(function() {
+    exports = {
+        convertToHtml,
+        convertToPdf,
+        converter
+    };
+
+    if (!module.parent) {
+        if (process.argv.length >= 4 && process.argv[3] === 'html') {
+            convertToHtml(process.argv[2]);
+        } else {
+            convertToPdf(process.argv[2]);
+        }
+    }
+})();

@@ -9,15 +9,15 @@ Creates html or PDF from a Swagger JSON file.
 ### command line usage:
 
     npm install
-    node -e require("./index.js").convertToPdf("path to your Swagger.json file")
+    node ./index.js "path to your Swagger.json file"
 
-or for html format:
+or add the `html` parameter for html format:
 
-    node -e require("./index.js").convertToHtml("path to your Swagger.json file")
+    node ./index.js "path to your Swagger.json file" html
 
-Also supports combining several Swagger JSON files into 1 output pdf:
+Also supports combining several Swagger JSON files into 1 output file:
 
-    node -e require("./index.js").convertToPdf("file1.json,file2.json,file3.json")
+    node ./index.js "file1.json,file2.json,file3.json"
 
 ### in-app integration:
 
