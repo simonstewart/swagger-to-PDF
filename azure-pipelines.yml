@@ -1,4 +1,3 @@
-# Node.js
 - task: Application security testing@2020
   inputs:
     projectName: 'POC Node project'
@@ -9,9 +8,6 @@
     medium: '2'
     low: '3'
     enableDependencyScan: false
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
 - master
