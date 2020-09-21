@@ -16,14 +16,18 @@ steps:
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
+
 - task: Application security testing@2020
   inputs:
-    projectName: 'poc'
     enableSastScan: true
     CheckmarxService: 'Cx-SAST'
     fullTeamName: 'CxServer'
+    vulnerabilityThreshold: true
+    high: '1'
+    medium: '1'
+    low: '1'
     enableDependencyScan: false
-    
+
 - script: |
     npm install
     npm run
