@@ -1,13 +1,7 @@
-- task: Application security testing@2020
-  inputs:
-    projectName: 'POC Node project'
-    enableSastScan: true
-    CheckmarxService: 'Cx-SAST'
-    vulnerabilityThreshold: true
-    high: '1'
-    medium: '2'
-    low: '3'
-    enableDependencyScan: false
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
 - master
