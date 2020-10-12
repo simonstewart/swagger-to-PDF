@@ -1,4 +1,5 @@
 # Node.js
+
 # Build a general Node.js project with npm.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
@@ -19,6 +20,7 @@ steps:
 
 - task: Application security testing@2020
   inputs:
+    projectName: 'Test SCA'
     enableSastScan: true
     CheckmarxService: 'Cx-SAST'
     fullTeamName: 'CxServer'
@@ -26,7 +28,14 @@ steps:
     high: '1'
     medium: '1'
     low: '1'
-    enableDependencyScan: false
+    enableDependencyScan: true
+    dependencyServerURL: 'CxSCA'
+    dependencyTenant: 'SCAPOC_Librity'
+    scaVulnerabilityThreshold: true
+    scaHigh: '1'
+    scaMedium: '1'
+    scaLow: '1'
+
 
 - script: |
     npm install
