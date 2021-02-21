@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "phantom-html2pdf": "^4.0.0"
+    "phantom-html2pdf": "^4.0.0",
+    "yamljs": "^0.2.8"
   }
 }
